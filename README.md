@@ -13,10 +13,12 @@
 - [Wiki 바로가기](https://github.com/glossybigbro/android-actions-practice/wiki)
 
 ### Wiki 주요 섹션
-- **[Action](https://github.com/glossybigbro/android-actions-practice/wiki/Action)**: GitHub Actions에서 사용하는 액션 설정에 대한 기록.
-- **[Workflow](https://github.com/glossybigbro/android-actions-practice/wiki/Workflow)**: 워크플로우 설정과 실행 방법을 정리한 내용.
-- **[Optimization](https://github.com/glossybigbro/android-actions-practice/wiki/Optimization)**: 빌드 성능 최적화에 대한 팁과 기록.
-- **[Issues and Solutions](https://github.com/glossybigbro/android-actions-practice/wiki/Issues-and-Solutions)**: 설정하면서 발생한 문제와 그 해결 방법을 적어둔 섹션.
+
+- **[Action](https://github.com/glossybigbro/android-actions-practice/wiki/Action)**: GitHub Actions에서 사용하는 다양한 액션들을 설정해 보면서 배운 내용을 정리한 섹션입니다.
+- **[Workflow](https://github.com/glossybigbro/android-actions-practice/wiki/Workflow)**: 워크플로우를 설정하고 실행하면서 익힌 방법들을 기록한 섹션입니다.
+- **[Optimization](https://github.com/glossybigbro/android-actions-practice/wiki/Optimization)**: 빌드 성능을 최적화하는 방법을 학습하고 정리한 섹션입니다.
+- **[Issues and Solutions](https://github.com/glossybigbro/android-actions-practice/wiki/Issues-and-Solutions)**: 설정 과정에서 발생한 문제들과 그 해결 과정을 기록해 둔 섹션입니다.
+- **[Integrations](https://github.com/glossybigbro/android-actions-practice/wiki/Integrations)**: GitHub Actions를 Slack, Jira 등 외부 플랫폼과 연동해 본 경험을 정리한 섹션입니다.
 
 ---
 
