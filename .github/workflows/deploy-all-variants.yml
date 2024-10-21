@@ -1,0 +1,105 @@
+name: "[Build] Deploy all APKs"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        gradle_command: [ ":app:assembleRelease", ":app:assembleDebug" ]
+    outputs:
+      release_artifact_name: ${{ steps.set_artifact_name.outputs.release_artifact_name }}
+      debug_artifact_name: ${{ steps.set_artifact_name.outputs.debug_artifact_name }}
+    steps:
+      # 1. 소스 코드 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.0
+
+      # 2. Java 환경 설정
+      - name: Setup Java Environment
+        uses: ./.github/actions/setup-java
+
+      # 3. APK 빌드
+      - name: Build APKs
+        run: ./gradlew ${{ matrix.gradle_command }}
+
+      # 4. APK 파일 경로 확인 및 빌드 타입별 구분
+      - name: Retrieve APK Paths
+        id: apk
+        run: |
+          BUILD_MODE=$(if [[ "${{ matrix.gradle_command }}" == *"Release" ]]; then echo "release"; else echo "debug"; fi)
+          APK_FILES=$(find ./app/build/outputs/apk/ -name "*$BUILD_MODE*.apk")
+          if [ -z "$APK_FILES" ]; then
+            echo "No APK files found for $BUILD_MODE!"
+            exit 1
+          fi
+          echo "Found APK files: $APK_FILES"
+          echo "APK_PATHS_$BUILD_MODE<<EOF" >> $GITHUB_OUTPUT
+          echo "$APK_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # 5. 아티팩트 이름 설정 (빌드 시점의 날짜 및 시간 추가)
+      - name: Set Artifact Name
+        id: set_artifact_name
+        run: |
+          TZ="Asia/Seoul" date
+          DATE=$(TZ="Asia/Seoul" date +"%Y%m%d-%I%M%S%p")
+          if [[ "${{ matrix.gradle_command }}" == ":app:assembleRelease" ]]; then
+            echo "RELEASE_ARTIFACT_NAME=apks-release-${DATE}" >> $GITHUB_OUTPUT
+          else
+            echo "DEBUG_ARTIFACT_NAME=apks-debug-${DATE}" >> $GITHUB_OUTPUT
+          fi
+
+      # 6. GitHub Artifact APK 업로드
+      - name: Upload APKs to GitHub Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set_artifact_name.outputs.RELEASE_ARTIFACT_NAME || steps.set_artifact_name.outputs.DEBUG_ARTIFACT_NAME }}
+          path: ${{ steps.apk.outputs.APK_PATHS_release || steps.apk.outputs.APK_PATHS_debug }}
+          if-no-files-found: error
+
+  zip:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 릴리즈 APK 다운로드
+      - name: Download Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.release_artifact_name }}
+
+      # 2. 디버그 APK 다운로드
+      - name: Download Debug APK
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.debug_artifact_name }}
+
+      # 3. 모든 APK 파일을 ZIP으로 압축 (12시간 형식, AM/PM 추가)
+      - name: Create ZIP from APK Files
+        run: |
+          mkdir -p apk_files
+          find $GITHUB_WORKSPACE -name "*.apk" -exec cp {} apk_files/ \;
+          TZ="Asia/Seoul" date
+          DATE=$(TZ="Asia/Seoul" date +"%Y%m%d-%I%M%S%p")
+          FILE_NAME="apks-${DATE}.zip"
+          zip -r "$FILE_NAME" apk_files/
+
+      # 4. ZIP 파일 생성 확인 및 환경 변수 설정
+      - name: Verify ZIP file creation and set file name
+        id: set_zip_name
+        run: |
+          FILE_NAME=$(ls apks-*.zip)
+          if [ ! -f "$FILE_NAME" ]; then
+            echo "ZIP file creation failed!"
+            exit 1
+          fi
+          echo "ZIP_NAME=$FILE_NAME" >> $GITHUB_ENV
+
+      # 5. ZIP 파일 업로드
+      - name: Upload ZIP to GitHub Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_NAME }}
