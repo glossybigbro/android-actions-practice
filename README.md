@@ -19,6 +19,7 @@
 - **[Optimization](https://github.com/glossybigbro/android-actions-practice/wiki/Optimization)**: 빌드 성능을 최적화하는 방법을 학습하고 정리한 섹션입니다.
 - **[Issues and Solutions](https://github.com/glossybigbro/android-actions-practice/wiki/Issues-and-Solutions)**: 설정 과정에서 발생한 문제들과 그 해결 과정을 기록해 둔 섹션입니다.
 - **[Integrations](https://github.com/glossybigbro/android-actions-practice/wiki/Integrations)**: GitHub Actions를 Slack, Jira 등 외부 플랫폼과 연동해 본 경험을 정리한 섹션입니다.
+- **[Tips and Tricks](https://github.com/glossybigbro/android-actions-practice/wiki/Tips-and-Tricks)**: GitHub Actions를 더 효율적으로 사용하기 위한 팁과 트릭을 모아 놓은 섹션입니다.
 
 ---
 
