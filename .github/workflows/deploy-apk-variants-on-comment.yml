@@ -1,0 +1,106 @@
+name: "[Build] Deploy apks based on comment trigger"
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}  # 기본 권한 제거
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parse-gradle-command:
+    if: github.event.issue.pull_request != null && startsWith(github.event.comment.body, '/gradle')
+    runs-on: ubuntu-latest
+    env:
+      COMMENT_BODY: ${{ github.event.comment.body }}
+    outputs:
+      gradle-commands: ${{ steps.determine-commands.outputs.result }}
+    steps:
+      # PR 코멘트에서 Gradle 명령어 파싱 및 검증
+      - name: Parse and validate gradle commands from pr comment
+        id: determine-commands
+        run: |
+          GRADLE_COMMANDS='{"gradle_command":[]}'
+          if echo "$COMMENT_BODY" | grep -iq "^/gradle all"; then
+            GRADLE_COMMANDS='{"gradle_command":[":app:assembleDebug",":app:assembleRelease"]}'
+          elif echo "$COMMENT_BODY" | grep -iq "^/gradle release"; then
+            GRADLE_COMMANDS='{"gradle_command":[":app:assembleRelease"]}'
+          elif echo "$COMMENT_BODY" | grep -iq "^/gradle debug"; then
+            GRADLE_COMMANDS='{"gradle_command":[":app:assembleDebug"]}'
+          else
+            echo "Error: Unsupported Gradle command. Use '/gradle all', '/gradle release', or '/gradle debug'." >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "result=$GRADLE_COMMANDS" >> $GITHUB_OUTPUT
+
+  build-apks:
+    needs: parse-gradle-command
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        gradle-command: ${{ fromJson(needs.parse-gradle-command.outputs.gradle-commands).gradle_command }}
+    # 필요한 권한 명시적으로 설정
+    permissions:
+      contents: read # 소스 코드 체크아웃에 필요
+      actions: write # 아티팩트 업로드에 필요
+      pull-requests: write # PR에 코멘트를 작성하기 위해 필요
+    steps:
+      # PR 코멘트에 반응 추가 (빌드 시작 시 로켓 반응)
+      - name: Add triggered reaction (rocket for start)
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: rocket
+
+      # 소스 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4.2.0
+
+      # Java 환경 설정
+      - name: Set up java environment
+        uses: ./.github/actions/setup-java
+
+      # APK 빌드
+      - name: Build apk
+        run: ./gradlew ${{ matrix.gradle-command }}
+
+      # 모든 APK를 하나의 ZIP 파일로 압축
+      - name: Compress all apks into a single file
+        run: |
+          BUILD_MODE=$(if [[ "${{ matrix.gradle-command }}" == *"Release" ]]; then echo "release"; else echo "debug"; fi)
+          FILE_NAME="${BUILD_MODE}-${{ github.event.comment.id }}"
+          APK_FILES=$(find ./app/build/outputs/apk/ -name '*.apk')
+          if [ -z "$APK_FILES" ]; then
+            echo "Error: No APK files found!"
+            exit 1
+          fi
+          zip -j "$FILE_NAME.zip" $APK_FILES
+          echo "ZIP_NAME=$FILE_NAME.zip" >> $GITHUB_ENV
+          echo "BUILD_MODE=$BUILD_MODE" >> $GITHUB_ENV
+
+      # APK 파일을 하나의 아티팩트로 업로드
+      - name: Upload apks as one artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "apks-${{ env.BUILD_MODE }}-${{ github.event.comment.id }}"
+          path: ${{ env.ZIP_NAME }}
+          if-no-files-found: error
+
+      # APK 다운로드 링크 작성
+      - name: Create apk download links
+        run: |
+          UPPER_BUILD_MODE=$(echo "${{ env.BUILD_MODE }}" | tr '[:lower:]' '[:upper:]')
+          echo "✅ 빌드 파일이 준비되었습니다: $UPPER_BUILD_MODE" > download_links.txt
+          echo "다운로드 링크: ${{ steps.upload-artifact.outputs.artifact-url }}" >> download_links.txt
+          echo "message=$(cat download_links.txt)"
+
+      # APK 다운로드 링크를 PR 코멘트로 게시
+      - name: Post apk download links
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body-path: 'download_links.txt'
