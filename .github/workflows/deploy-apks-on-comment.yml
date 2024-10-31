@@ -1,4 +1,4 @@
-name: "[Build] Deploy apks based on comment trigger"
+name: "[Build] Deploy APKs Based on Comment Trigger"
 
 on:
   issue_comment:
@@ -20,7 +20,7 @@ jobs:
       gradle-commands: ${{ steps.determine-commands.outputs.result }}
     steps:
       # PR 코멘트에서 Gradle 명령어 파싱 및 검증
-      - name: Parse and validate gradle commands from pr comment
+      - name: Parse and Validate Gradle Commands from PR Comment
         id: determine-commands
         run: |
           GRADLE_COMMANDS='{"gradle_command":[]}'
@@ -49,26 +49,26 @@ jobs:
       pull-requests: write # PR에 코멘트를 작성하기 위해 필요
     steps:
       # PR 코멘트에 반응 추가 (빌드 시작 시 로켓 반응)
-      - name: Add triggered reaction (rocket for start)
+      - name: Add Triggered Reaction (Rocket for Start)
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ github.event.comment.id }}
           reactions: rocket
 
       # 소스 코드 체크아웃
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4.2.0
 
       # Java 환경 설정
-      - name: Set up java environment
+      - name: Set Up Java Environment
         uses: ./.github/actions/setup-java
 
       # APK 빌드
-      - name: Build apk
+      - name: Build APK
         run: ./gradlew ${{ matrix.gradle-command }}
 
       # 모든 APK를 하나의 ZIP 파일로 압축
-      - name: Compress all apks into a single file
+      - name: Compress All APKs into a Single File
         run: |
           BUILD_MODE=$(if [[ "${{ matrix.gradle-command }}" == *"Release" ]]; then echo "release"; else echo "debug"; fi)
           FILE_NAME="${BUILD_MODE}-${{ github.event.comment.id }}"
@@ -78,11 +78,12 @@ jobs:
             exit 1
           fi
           zip -j "$FILE_NAME.zip" $APK_FILES
+          echo "Success: Created ZIP file: $FILE_NAME.zip"
           echo "ZIP_NAME=$FILE_NAME.zip" >> $GITHUB_ENV
           echo "BUILD_MODE=$BUILD_MODE" >> $GITHUB_ENV
 
       # APK 파일을 하나의 아티팩트로 업로드
-      - name: Upload apks as one artifact
+      - name: Upload APKs as One Artifact
         id: upload-artifact
         uses: actions/upload-artifact@v4
         with:
@@ -91,15 +92,15 @@ jobs:
           if-no-files-found: error
 
       # APK 다운로드 링크 작성
-      - name: Create apk download links
+      - name: Create APK Download Links
         run: |
           UPPER_BUILD_MODE=$(echo "${{ env.BUILD_MODE }}" | tr '[:lower:]' '[:upper:]')
-          echo "✅ 빌드 파일이 준비되었습니다: $UPPER_BUILD_MODE" > download_links.txt
-          echo "다운로드 링크: ${{ steps.upload-artifact.outputs.artifact-url }}" >> download_links.txt
+          echo "✅ Build files are ready: $UPPER_BUILD_MODE" > download_links.txt
+          echo "Download link: ${{ steps.upload-artifact.outputs.artifact-url }}" >> download_links.txt
           echo "message=$(cat download_links.txt)"
 
       # APK 다운로드 링크를 PR 코멘트로 게시
-      - name: Post apk download links
+      - name: Post APK Download Links
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.issue.number }}

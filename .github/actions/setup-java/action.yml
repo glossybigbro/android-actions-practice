@@ -9,21 +9,21 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # 1. 최신 버전의 JDK 설정
-    - name: Set up JDK ${{ inputs.java-version }}
+    # 최신 버전의 JDK 설정
+    - name: Set Up JDK ${{ inputs.java-version }}
       uses: actions/setup-java@v4.4.0
       with:
         distribution: temurin
         java-version: ${{ inputs.java-version }}
 
-    # 2. Gradle 래퍼 유효성 검사 및 캐시 정리 포함한 Gradle 설정
+    # Gradle 래퍼 유효성 검사 및 캐시 정리 포함한 Gradle 설정
     - name: Setup Gradle with Wrapper Validation and Cache Cleanup
       uses: gradle/actions/setup-gradle@v3
       with:
         validate-wrappers: true
         gradle-home-cache-cleanup: true
 
-    # 3. CI용 Gradle 속성 설정
+    # CI용 Gradle 속성 설정
     - name: Configure CI Gradle Properties
       shell: bash 
       run: |

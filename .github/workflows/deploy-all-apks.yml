@@ -1,4 +1,4 @@
-name: "[Build] Deploy all apks"
+name: "[Build] Deploy All APKs"
 
 on:
   workflow_dispatch:
@@ -20,26 +20,26 @@ jobs:
       actions: write # 아티팩트 업로드에 필요
     steps:
       # 소스 코드 체크아웃
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4.2.0
 
       # Java 환경 설정
-      - name: Set up java environment
+      - name: Set Up Java Environment
         uses: ./.github/actions/setup-java
 
       # APK 빌드
-      - name: Build apk
+      - name: Build APK
         run: ./gradlew ${{ matrix.gradle_command }}
 
       # APK 파일 경로 확인 및 빌드 타입별 구분
-      - name: Retrieve apk paths
+      - name: Retrieve APK Paths
         id: apk
         run: |
           BUILD_MODE=$(if [[ "${{ matrix.gradle_command }}" == *"Release" ]]; then echo "release"; else echo "debug"; fi)
           echo "BUILD_MODE=$BUILD_MODE" >> $GITHUB_ENV
           APK_FILES=$(find ./app/build/outputs/apk/ -name "*$BUILD_MODE*.apk")
           if [ -z "$APK_FILES" ]; then
-            echo "No APK files found for $BUILD_MODE!"
+            echo "Error: No APK files found for $BUILD_MODE!" # APK 파일이 없을 경우 에러 메시지 출력
             exit 1
           fi
           echo "Found APK files: $APK_FILES"
@@ -48,7 +48,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       # 아티팩트 이름 설정 (날짜와 시간 포함)
-      - name: Set artifact name
+      - name: Set Artifact Name
         id: set_artifact_name
         run: |
           DATE=$(TZ="Asia/Seoul" date +"%Y%m%d-%I%M%S%p")
@@ -58,7 +58,7 @@ jobs:
           echo "${BUILD_MODE^^}_ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
       # APK 파일 압축 및 업로드
-      - name: Zip and upload apk files
+      - name: Zip and Upload APK Files
         run: |
           mkdir -p apks
           BUILD_MODE=${{ env.BUILD_MODE }}
@@ -73,7 +73,7 @@ jobs:
           echo "ZIP_NAME=$GITHUB_WORKSPACE/$ARTIFACT_NAME.zip" >> $GITHUB_ENV
 
       # APK ZIP 파일 업로드
-      - name: Upload apk zip to github artifact
+      - name: Upload APK Zip to GitHub Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -87,41 +87,41 @@ jobs:
       actions: write  # 아티팩트 업로드 및 다운로드 하는 데 필요
     steps:
       # 릴리즈 APK 다운로드
-      - name: Download release apk
+      - name: Download Release APK
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build_apks.outputs.release_artifact_name }}
 
       # 디버그 APK 다운로드
-      - name: Download debug apk
+      - name: Download Debug APK
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build_apks.outputs.debug_artifact_name }}
 
       # 모든 ZIP 파일 해제
-      - name: Unzip all downloaded apks
+      - name: Unzip All Downloaded APKs
         run: |
           mkdir -p apk_files
           unzip '*.zip' -d apk_files
 
       # APK 파일을 ZIP으로 다시 압축
-      - name: Create zip from apks
+      - name: Create Zip from APKs
         run: |
           DATE=$(TZ="Asia/Seoul" date +"%Y%m%d-%I%M%S%p")
           FILE_NAME="apks-${DATE}"
           APK_COUNT=$(find apk_files -name '*.apk' | wc -l)
           if [ "$APK_COUNT" -gt 0 ]; then
             zip -j "$GITHUB_WORKSPACE/$FILE_NAME.zip" apk_files/*.apk
-            echo "Created ZIP file: $GITHUB_WORKSPACE/$FILE_NAME"
+            echo "Success: Created ZIP file: $GITHUB_WORKSPACE/$FILE_NAME"
             echo "ZIP_NAME=$GITHUB_WORKSPACE/$FILE_NAME.zip" >> $GITHUB_ENV
             echo "ARTIFACT_NAME=$FILE_NAME" >> $GITHUB_ENV
           else
-            echo "No APK files found to zip!"
+            echo "Error: No APK files found to zip!"
             exit 1
           fi
 
       # ZIP 파일 업로드
-      - name: Upload all APK zip to GitHub artifact
+      - name: Upload All APK Zip to GitHub Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
