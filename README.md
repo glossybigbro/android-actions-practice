@@ -26,10 +26,11 @@
 
 Wiki의 주요 페이지 업데이트 내역은 다음과 같습니다:
 
-- **2024-10-24**: [JDK 및 Gradle 설정](https://github.com/glossybigbro/android-actions-practice/wiki/JDK-%EB%B0%8F-Gradle-%EC%84%A4%EC%A0%95) 페이지 추가
-- **2024-10-24**: [APK 빌드와 배포 자동화](https://github.com/glossybigbro/android-actions-practice/wiki/APK-%EB%B9%8C%EB%93%9C%EC%99%80-%EB%B0%B0%ED%8F%AC-%EC%9E%90%EB%8F%99%ED%99%94) 페이지 추가
-- **2024-10-25**: [Permissions 설정](https://github.com/glossybigbro/android-actions-practice/wiki/Permissions-%EC%84%A4%EC%A0%95) 페이지 추가
-- **2024-11-01**: [PR 코멘트 트리거를 기반으로 APK 빌드 및 배포](https://github.com/glossybigbro/android-actions-practice/wiki/PR-%EC%BD%94%EB%A9%98%ED%8A%B8-%ED%8A%B8%EB%A6%AC%EA%B1%B0%EB%A5%BC-%EA%B8%B0%EB%B0%98%EC%9C%BC%EB%A1%9C-APK-%EB%B9%8C%EB%93%9C-%EB%B0%8F-%EB%B0%B0%ED%8F%AC) 페이지 추가
+- **2024-10-17**: [JDK 및 Gradle 설정](https://github.com/glossybigbro/android-actions-practice/wiki/JDK-및-Gradle-설정) 페이지 추가
+- **2024-10-17**: [CI 환경을 위한 Gradle 속성 설정](https://github.com/glossybigbro/android-actions-practice/wiki/CI-환경을-위한-Gradle-속성-설정) 페이지 추가
+- **2024-10-18**: [Permissions 설정](https://github.com/glossybigbro/android-actions-practice/wiki/Permissions-설정) 페이지 추가
+- **2024-10-21**: [APK 빌드와 배포 자동화](https://github.com/glossybigbro/android-actions-practice/wiki/APK-빌드와-배포-자동화) 페이지 추가
+- **2024-11-01**: [PR 코멘트 트리거를 기반으로 APK 빌드 및 배포](https://github.com/glossybigbro/android-actions-practice/wiki/PR-코멘트-트리거를-기반으로-APK-빌드-및-배포) 페이지 추가
 
 ---
 
