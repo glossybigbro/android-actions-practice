@@ -1,0 +1,83 @@
+name: "[CD] Notify Milestone Due Date"
+
+# 참고: Slack 알림을 위해 GitHub Secrets에 SLACK_WEBHOOK_URL 및 SLACK_NOTIFY를 설정해야 합니다.
+# 1. Slack에서 "Incoming Webhooks" 앱을 설치한 후, Webhook URL을 생성합니다.
+# 2. 생성한 Webhook URL을 GitHub Secrets에 SLACK_WEBHOOK_URL이라는 이름으로 저장합니다.
+# 3. Slack 알림을 활성화하려면 GitHub Secrets에 SLACK_NOTIFY 값을 "true"로 설정합니다.
+#    예: Settings > Secrets and variables > Actions > New repository secret > Name: SLACK_WEBHOOK_URL, SLACK_NOTIFY
+
+on:
+  workflow_dispatch:
+    inputs:
+      days_until_due:
+        description: "Milestone notification threshold in days (e.g., 3)"
+        required: false  # 수동 실행 시 선택 사항으로 설정
+        default: "3"
+  schedule:
+    - cron: "0 0 * * *"  # 매일 자정에 실행
+
+permissions: {}  # 기본 권한 제거
+
+jobs:
+  notify-milestones:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write  # 마일스톤 상태 확인 권한
+
+    steps:
+      # jq 설치 여부 확인
+      - name: Check if jq is Installed
+        run: |
+          if ! command -v jq &> /dev/null; then
+            echo "Installing jq for JSON parsing..."
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+      # 알림 기준 설정
+      - name: Set Notification Threshold
+        run: |
+          days_until_due="${{ github.event.inputs.days_until_due || '3' }}"          
+          if ! [[ "$days_until_due" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid value entered. days_until_due must be a number."
+            exit 1
+          fi
+          echo "days_until_due=$days_until_due" >> $GITHUB_ENV
+
+      # 마일스톤 마감 기한 확인
+      - name: Check Milestone Due Dates
+        env:
+          SLACK_NOTIFY: ${{ secrets.SLACK_NOTIFY }} # Slack 알림 활성화 여부
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Slack Webhook URL
+          days_until_due: ${{ env.days_until_due }}
+        run: |
+          due_seconds=$((days_until_due * 86400))
+          milestones=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/milestones?state=open&sort=due_on&direction=asc" \
+            | jq -c '.[] | select(.due_on != null)')
+          if [ -z "$milestones" ]; then
+            echo "There are no active milestones."
+            exit 0
+          fi
+          echo "$milestones" | while read -r milestone; do
+            milestone_title=$(echo "$milestone" | jq -r '.title')
+            milestone_due_date=$(echo "$milestone" | jq -r '.due_on')
+            due_date_seconds=$(date -d "$milestone_due_date" +%s)
+            now_seconds=$(date +%s)
+            remaining_seconds=$(( due_date_seconds - now_seconds ))
+            if [ "$remaining_seconds" -le "$due_seconds" ]; then
+              hours_left=$(( remaining_seconds / 3600 ))
+              echo "⚠️ The due date for milestone '$milestone_title' is within ${days_until_due} days. Time left: ${hours_left} hours, due date: $milestone_due_date"
+              if [[ "$SLACK_NOTIFY" == "true" && -n "$SLACK_WEBHOOK_URL" ]]; then
+                echo "Sending Slack notification..."
+                notification=$(jq -n \
+                  --arg text "⚠️ The due date for milestone '$milestone_title' is within ${days_until_due} days! Time left: ${hours_left} hours, due date: $milestone_due_date" \
+                  '{text: $text}')
+                curl -X POST -H 'Content-type: application/json' \
+                  --data "$notification" \
+                  "$SLACK_WEBHOOK_URL"
+              fi
+            else
+              echo "The due date for milestone '$milestone_title' is more than ${days_until_due} days away."
+            fi
+          done
