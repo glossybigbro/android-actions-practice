@@ -1,4 +1,4 @@
-name: "[CD] Create Single Active Milestone with Due Date Setting"
+name: "[CD] Create Unique Active Milestone with Due Date Setting"
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
 permissions: {}  # 기본 권한 제거
 
 jobs:
-  create-single-milestone:
+  create-individual-milestone:
     runs-on: ubuntu-latest
     permissions:
       issues: write  # 마일스톤 생성 권한
@@ -41,30 +41,25 @@ jobs:
             sudo apt-get update && sudo apt-get install -y jq
           fi
 
-      # 기존 활성 마일스톤 확인
+      # 기존 활성 마일스톤 중복 확인
       - name: Check for Existing Active Milestone
         run: |
           milestones=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/milestones")
-          active_milestone_count=$(echo "$milestones" | jq '[.[] | select(.state == "open")] | length')
-          if [ "$active_milestone_count" -gt 0 ]; then
-            echo "Warning: An active milestone already exists. Skipping creation of a new milestone."
-            echo "milestone_exists=true" >> $GITHUB_ENV
-          else
-            echo "milestone_exists=false" >> $GITHUB_ENV
+          if echo "$milestones" | jq -e --arg title "${{ github.event.inputs.milestone_title }}" '.[] | select(.title == $title)' > /dev/null; then
+            echo "Error: Milestone '${{ github.event.inputs.milestone_title }}' already exists."
+            exit 1
           fi
 
-      # 마일스톤 기한 계산
+      # 마일스톤 기한 일수 유효성 검사 및 계산
       - name: Calculate Milestone Due Date
-        if: env.milestone_exists == 'false'
         run: |
           due_date=$(date -d "+${{ github.event.inputs.due_in_days }} days" +'%Y-%m-%dT00:00:00Z')
           echo "due_date=$due_date" >> $GITHUB_ENV
 
       # 새로운 마일스톤 생성
       - name: Create New Milestone
-        if: env.milestone_exists == 'false'
         run: |
           curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -76,10 +71,4 @@ jobs:
             "due_on": "${{ env.due_date }}"
           }
           EOF
-          echo "Success: A new milestone '${{ github.event.inputs.milestone_title }}' has been created. Due date: ${{ env.due_date }}."
-
-      # 기존 활성 마일스톤 알림
-      - name: Notify Existing Active Milestone
-        if: env.milestone_exists == 'true'
-        run: |
-          echo "Notice: An active milestone already exists. No new milestone was created."
+          echo "Success: New milestone '${{ github.event.inputs.milestone_title }}' has been created. Due date: ${{ env.due_date }}."
