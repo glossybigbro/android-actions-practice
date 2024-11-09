@@ -22,7 +22,7 @@ jobs:
   notify-milestones:
     runs-on: ubuntu-latest
     permissions:
-      issues: write  # 마일스톤 상태 확인 권한
+      issues: read  # 마일스톤 상태 확인 권한
 
     steps:
       # jq 설치 여부 확인
@@ -38,7 +38,7 @@ jobs:
         run: |
           days_until_due="${{ github.event.inputs.days_until_due || '3' }}"          
           if ! [[ "$days_until_due" =~ ^[0-9]+$ ]]; then
-            echo "Error: Invalid value entered. days_until_due must be a number."
+            echo "Error: Non-numeric value entered. days_until_due must be a number."
             exit 1
           fi
           echo "days_until_due=$days_until_due" >> $GITHUB_ENV
@@ -50,34 +50,65 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # Slack Webhook URL
           days_until_due: ${{ env.days_until_due }}
         run: |
+          # 설정된 알림 기준 시간을 초 단위로 변환
           due_seconds=$((days_until_due * 86400))
+
+          # Slack 알림 전송 함수 정의
+          send_slack_notification() {
+            local message=$1
+            if [[ "$SLACK_NOTIFY" == "true" && -n "$SLACK_WEBHOOK_URL" ]]; then
+              notification=$(jq -n --arg text "$message" '{text: $text}')
+              response=$(curl -X POST -H 'Content-type: application/json' --data "$notification" "$SLACK_WEBHOOK_URL")
+          
+              # Slack 알림 실패 시 로그 기록 (워크플로우는 계속 실행)
+              if [ $? -ne 0 ]; then
+                echo "Failed to send Slack notification: $response"
+              fi
+            fi
+          }
+
+          # GitHub API를 통해 모든 열린 마일스톤 가져오기
           milestones=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/milestones?state=open&sort=due_on&direction=asc" \
             | jq -c '.[] | select(.due_on != null)')
+
+          # 열린 마일스톤이 없을 경우 종료
           if [ -z "$milestones" ]; then
-            echo "There are no active milestones."
+            echo "No active milestones."
             exit 0
           fi
+
+          # 각 마일스톤의 남은 기한을 계산하여 알림 생성
           echo "$milestones" | while read -r milestone; do
             milestone_title=$(echo "$milestone" | jq -r '.title')
             milestone_due_date=$(echo "$milestone" | jq -r '.due_on')
+
             due_date_seconds=$(date -d "$milestone_due_date" +%s)
             now_seconds=$(date +%s)
             remaining_seconds=$(( due_date_seconds - now_seconds ))
-            if [ "$remaining_seconds" -le "$due_seconds" ]; then
+
+            # 1. 마일스톤 기한이 이미 지난 경우
+            if [ "$remaining_seconds" -lt 0 ]; then
+              message="⚠️ Milestone '$milestone_title' due date has passed. Due date: $milestone_due_date"
+              echo "$message"
+              send_slack_notification "$message"
+          
+            # 2. 마일스톤 기한이 1일 이하로 남은 경우 (긴급 알림)
+            elif [ "$remaining_seconds" -le 86400 ]; then
+              message="⚠️ Milestone '$milestone_title' is due within 1 day. Due date: $milestone_due_date"
+              echo "$message"
+              send_slack_notification "$message"
+          
+            # 3. 마일스톤 기한이 설정된 기준일 이하로 남은 경우
+            elif [ "$remaining_seconds" -le "$due_seconds" ]; then
               hours_left=$(( remaining_seconds / 3600 ))
-              echo "⚠️ The due date for milestone '$milestone_title' is within ${days_until_due} days. Time left: ${hours_left} hours, due date: $milestone_due_date"
-              if [[ "$SLACK_NOTIFY" == "true" && -n "$SLACK_WEBHOOK_URL" ]]; then
-                echo "Sending Slack notification..."
-                notification=$(jq -n \
-                  --arg text "⚠️ The due date for milestone '$milestone_title' is within ${days_until_due} days! Time left: ${hours_left} hours, due date: $milestone_due_date" \
-                  '{text: $text}')
-                curl -X POST -H 'Content-type: application/json' \
-                  --data "$notification" \
-                  "$SLACK_WEBHOOK_URL"
-              fi
+              message="⚠️ Milestone '$milestone_title' is due within ${days_until_due} days. Hours remaining: ${hours_left} hours, Due date: $milestone_due_date"
+              echo "$message"
+              send_slack_notification "$message"
+          
+            # 4. 마일스톤 기한이 충분히 남은 경우
             else
-              echo "The due date for milestone '$milestone_title' is more than ${days_until_due} days away."
+              echo "Milestone '$milestone_title' is more than ${days_until_due} days away."
             fi
           done
