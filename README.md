@@ -32,6 +32,7 @@ Wiki의 주요 페이지 업데이트 내역은 다음과 같습니다:
 - **2024-10-21**: [APK 빌드와 배포 자동화](https://github.com/glossybigbro/android-actions-practice/wiki/APK-빌드와-배포-자동화) 페이지 추가
 - **2024-11-01**: [PR 코멘트 트리거를 기반으로 APK 빌드 및 배포](https://github.com/glossybigbro/android-actions-practice/wiki/PR-코멘트-트리거를-기반으로-APK-빌드-및-배포) 페이지 추가
 - **2024-11-08**: [단일 활성 마일스톤 생성 및 기한 설정](https://github.com/glossybigbro/android-actions-practice/wiki/단일-활성-마일스톤-생성-및-기한-설정) 페이지 추가
+- **2024-11-09**: [마일스톤 기한 알림](https://github.com/glossybigbro/android-actions-practice/wiki/마일스톤-기한-알림) 페이지 추가
 
 ---
 
