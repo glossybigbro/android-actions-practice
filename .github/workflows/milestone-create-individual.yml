@@ -46,7 +46,7 @@ jobs:
         run: |
           milestones=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/milestones")
+            "https://api.github.com/repos/${{ github.repository }}/milestones?state=open")
           if echo "$milestones" | jq -e --arg title "${{ github.event.inputs.milestone_title }}" '.[] | select(.title == $title)' > /dev/null; then
             echo "Error: Milestone '${{ github.event.inputs.milestone_title }}' already exists."
             exit 1
