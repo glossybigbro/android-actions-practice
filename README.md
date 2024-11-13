@@ -35,6 +35,7 @@ Wiki의 주요 페이지 업데이트 내역은 다음과 같습니다:
 - **2024-11-09**: [마일스톤 기한 알림](https://github.com/glossybigbro/android-actions-practice/wiki/마일스톤-기한-알림) 페이지 추가
 - **2024-11-12**: [마일스톤 생성 및 기한 설정](https://github.com/glossybigbro/android-actions-practice/wiki/마일스톤-생성-및-기한-설정) 페이지 추가
 - **2024-11-13**: [오래된 브랜치 및 태그 정리](https://github.com/glossybigbro/android-actions-practice/wiki/오래된-브랜치-및-태그-정리) 페이지 추가
+- **2024-11-14**: [GitHub Actions에서 봇 계정과 GITHUB_TOKEN을 사용하는 이유](https://github.com/glossybigbro/android-actions-practice/wiki/GitHub-Actions에서-봇(BOT)-계정과-GITHUB_TOKEN을-사용하는-이유) 페이지 추가
 
 ---
 
