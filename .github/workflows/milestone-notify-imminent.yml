@@ -1,4 +1,4 @@
-name: "[CD] Notify Milestone Due Date"
+name: "[Notification] Notify Milestone Due Date"
 
 # 참고: Slack 알림을 위해 GitHub Secrets에 SLACK_WEBHOOK_URL 및 SLACK_NOTIFY를 설정해야 합니다.
 # 1. Slack에서 "Incoming Webhooks" 앱을 설치한 후, Webhook URL을 생성합니다.
@@ -7,14 +7,12 @@ name: "[CD] Notify Milestone Due Date"
 #    예: Settings > Secrets and variables > Actions > New repository secret > Name: SLACK_WEBHOOK_URL, SLACK_NOTIFY
 
 on:
-  workflow_dispatch:
-    inputs:
-      days_until_due:
-        description: "Milestone notification threshold in days (e.g., 3)"
-        required: false  # 수동 실행 시 선택 사항으로 설정
-        default: "3"
   schedule:
     - cron: "0 0 * * *"  # 매일 자정에 실행
+  workflow_dispatch:
+
+env:
+  DAYS_UNTIL_DUE: 3  # 마일스톤 알림 기준 일수
 
 permissions: {}  # 기본 권한 제거
 
@@ -51,7 +49,7 @@ jobs:
           days_until_due: ${{ env.days_until_due }}
         run: |
           # 설정된 알림 기준 시간을 초 단위로 변환
-          due_seconds=$((days_until_due * 86400))
+          due_seconds=$((DAYS_UNTIL_DUE * 86400))
 
           # Slack 알림 전송 함수 정의
           send_slack_notification() {
@@ -109,6 +107,6 @@ jobs:
           
             # 4. 마일스톤 기한이 충분히 남은 경우
             else
-              echo "Milestone '$milestone_title' is more than ${days_until_due} days away."
+              echo "Milestone '$milestone_title' is more than ${DAYS_UNTIL_DUE} days away."
             fi
           done
