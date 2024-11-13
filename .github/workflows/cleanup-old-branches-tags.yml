@@ -1,0 +1,79 @@
+name: "[Maintenance] Cleanup Old Branches and Tags"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # 매일 자정에 실행
+  workflow_dispatch:
+
+env:
+  PROTECTED_BRANCHES: "main master develop release"  # 보호할 주요 브랜치 목록
+  BRANCH_THRESHOLD: 30  # 브랜치 삭제 기준 (일)
+  TAG_THRESHOLD: 30  # 태그 삭제 기준 (일)
+
+permissions: {}  # 기본 권한 제거
+
+jobs:
+  Cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 소스 코드 체크아웃과 브랜치 및 태그 삭제를 위한 읽기/쓰기 권한
+      actions: write   # 로그 파일 업로드를 위한 권한
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set Deletion Threshold Dates
+        run: |
+          BRANCH_THRESHOLD_DATE=$(date -u -d "${{ env.BRANCH_THRESHOLD }} days ago" +%Y-%m-%d)
+          TAG_THRESHOLD_DATE=$(date -u -d "${{ env.TAG_THRESHOLD }} days ago" +%Y-%m-%d)
+          echo "BRANCH_THRESHOLD_DATE=$BRANCH_THRESHOLD_DATE" >> $GITHUB_ENV
+          echo "TAG_THRESHOLD_DATE=$TAG_THRESHOLD_DATE" >> $GITHUB_ENV
+          
+          # 콘솔에 삭제 기한 출력
+          echo "브랜치 삭제 기준 날짜: $BRANCH_THRESHOLD_DATE"
+          echo "태그 삭제 기준 날짜: $TAG_THRESHOLD_DATE"
+
+      - name: Cleanup Old Branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_THRESHOLD_DATE: ${{ env.BRANCH_THRESHOLD_DATE }}
+        run: |
+          BRANCHES_DELETED=false
+          for branch in $(git for-each-ref --format='%(refname:short) %(committerdate:short)' refs/heads | awk -v date="$BRANCH_THRESHOLD_DATE" '$2 < date {print $1}')
+          do
+            if [[ ! " $PROTECTED_BRANCHES " =~ " $branch " ]]; then
+              echo "Deleting Branch: $branch"
+              git push origin --delete "$branch" || echo "Failed to Delete Branch: $branch"
+              echo "Deleted Branch: $branch" >> cleanup_log.txt
+              BRANCHES_DELETED=true
+            fi
+          done
+          echo "BRANCHES_DELETED=$BRANCHES_DELETED" >> $GITHUB_ENV
+
+      - name: Cleanup Old Tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_THRESHOLD_DATE: ${{ env.TAG_THRESHOLD_DATE }}
+        run: |
+          TAGS_DELETED=false
+          for tag in $(git for-each-ref --format='%(refname:short) %(taggerdate:short)' refs/tags | awk -v date="$TAG_THRESHOLD_DATE" '$2 < date {print $1}')
+          do
+            echo "Deleting Tag: $tag"
+            git push origin :refs/tags/"$tag" || echo "Failed to Delete Tag: $tag"
+            echo "Deleted Tag: $tag" >> cleanup_log.txt
+            TAGS_DELETED=true
+          done
+          echo "TAGS_DELETED=$TAGS_DELETED" >> $GITHUB_ENV
+
+      - name: Upload Log File
+        if: env.BRANCHES_DELETED == 'true' || env.TAGS_DELETED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanup_log
+          path: cleanup_log.txt
