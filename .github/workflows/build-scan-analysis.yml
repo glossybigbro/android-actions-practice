@@ -31,7 +31,7 @@ jobs:
       # Gradle Build Scan 실행 및 Summary 작성
       - name: Generate Build Scan and Write to Summary
         run: |
-          OUTPUT=$(./gradlew build --scan -Dorg.gradle.internal.ignoreInitScripts=true)
+          OUTPUT=$(./gradlew build --scan)
           SCAN_URL=$(echo "$OUTPUT" | grep -o "https://gradle.com/s/.*")
           if [ -z "$SCAN_URL" ]; then
             echo "Error: Build Scan URL not found!"
