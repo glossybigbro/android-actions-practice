@@ -21,7 +21,7 @@ runs:
       uses: gradle/actions/setup-gradle@v3
       with:
         validate-wrappers: true
-        gradle-home-cache-cleanup: true
+#        gradle-home-cache-cleanup: true
 
     # CI용 Gradle 속성 설정
     - name: Configure CI Gradle Properties
