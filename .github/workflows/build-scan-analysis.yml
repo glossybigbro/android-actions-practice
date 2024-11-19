@@ -3,10 +3,10 @@ name: "[CI] Generate Build Scan"
 on:
   workflow_dispatch:
 
-  pull_request:
-    branches:
-      - 'main'
-    types: [opened, synchronize]
+#  pull_request:
+#    branches:
+#      - 'main'
+#    types: [opened, synchronize]
   push:
     branches:
       - 'main'
@@ -31,7 +31,7 @@ jobs:
       # Gradle Build Scan 실행 및 Summary 작성
       - name: Generate Build Scan and Write to Summary
         run: |
-          OUTPUT=$(./gradlew build --scan)
+          OUTPUT=$(./gradlew build --scan -Dorg.gradle.internal.ignoreInitScripts=true)
           SCAN_URL=$(echo "$OUTPUT" | grep -o "https://gradle.com/s/.*")
           if [ -z "$SCAN_URL" ]; then
             echo "Error: Build Scan URL not found!"
