@@ -1,0 +1,43 @@
+name: "[CI] Generate Build Scan"
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - 'main'
+    types: [opened, synchronize]
+  push:
+    branches:
+      - 'main'
+
+permissions: {}  # 기본 권한 제거
+
+jobs:
+  generate-build-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # 소스 코드 체크아웃에 필요
+
+    steps:
+      # 소스 코드 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.0
+
+      # Java 환경 설정
+      - name: Set Up Java Environment
+        uses: ./.github/actions/setup-java
+
+      # Gradle Build Scan 실행 및 Summary 작성
+      - name: Generate Build Scan and Write to Summary
+        run: |
+          OUTPUT=$(./gradlew build --scan)
+          SCAN_URL=$(echo "$OUTPUT" | grep -o "https://gradle.com/s/.*")
+          if [ -z "$SCAN_URL" ]; then
+            echo "Error: Build Scan URL not found!"
+            echo "$OUTPUT" # Gradle 전체 로그 출력
+            exit 1
+          fi
+          echo "Build Scan URL: $SCAN_URL"
+          echo "### Build Scan Result" >> $GITHUB_STEP_SUMMARY
+          echo "- [Build Scan URL]($SCAN_URL)" >> $GITHUB_STEP_SUMMARY
