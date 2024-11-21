@@ -31,7 +31,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: CI - Verify Unit Test
-          artifact_name: test-results
+          name: test-results
           run_id: ${{ github.event.workflow_run.id }}
 
       # 이벤트 파일 다운로드
@@ -41,7 +41,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: CI - Verify Unit Test
-          artifact_name: event-file
+          name: event-file
           run_id: ${{ github.event.workflow_run.id }}
 
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
@@ -66,8 +66,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const github = require('@actions/github');
             const status = '${{ job.status }}';
-            await github.repos.createCommitStatus({
+            const context = github.context;
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: context.payload.workflow_run.head_sha || context.sha,
