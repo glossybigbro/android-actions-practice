@@ -68,8 +68,8 @@ jobs:
           script: |
             const status = '${{ job.status }}';
             const checkRun = await github.rest.checks.create({
-              owner: github.context.repo.owner,
-              repo: github.context.repo.repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               name: 'Unit Test Results',
               head_sha: github.context.sha,  // 커밋의 SHA
               status: status === 'success' ? 'completed' : 'completed', // 상태
