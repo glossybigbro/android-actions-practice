@@ -71,7 +71,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'Unit Test Results',
-              head_sha: github.context.sha,  // 커밋의 SHA
+              head_sha: context.sha,  // 커밋의 SHA
               status: status === 'success' ? 'completed' : 'completed', // 상태
               conclusion: status === 'success' ? 'success' : 'failure', // 결론
               output: {
