@@ -48,4 +48,3 @@ buildCache {
 
 rootProject.name = "android-actions-practice"
 include(":app")
- 

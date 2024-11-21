@@ -36,6 +36,12 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --no-scan --stacktrace
 
+      # 디버깅: 테스트 결과 파일 확인
+      - name: Debug Test Results Path
+        run: |
+          echo "Testing if test results exist:"
+          ls -R **/test-results/
+
       # 테스트 결과를 아티팩트로 저장
       - name: Upload Test Results
         if: always()

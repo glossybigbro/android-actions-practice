@@ -34,6 +34,12 @@ jobs:
           name: test-results
           run_id: ${{ github.event.workflow_run.id }}
 
+      # 디버깅: 다운로드된 파일 확인
+      - name: Check Downloaded Test Results Files
+        run: |
+          echo "Checking downloaded test results:"
+          ls -R test-results/
+
       # 이벤트 파일 다운로드
       - name: Download Event File
         uses: dawidd6/action-download-artifact@v6
@@ -42,7 +48,6 @@ jobs:
           workflow: CI - Verify Unit Test
           name: event-file
           run_id: ${{ github.event.workflow_run.id }}
-
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
       - name: Publish Unit Test Results
         if: ${{ github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0] }}
