@@ -1,0 +1,68 @@
+name: "[CI] Verify Unit Test"
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+    types: [opened, synchronize]
+  push:
+    branches:
+      - 'main'
+
+run-name: "Unit Test by ${{ github.actor }} on ${{ github.event_name }} (branch: ${{ github.ref_name }})"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.actor }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions: {} # 기본 권한 제거
+
+jobs:
+  unit_test:
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # 필요한 권한 명시적으로 설정
+    permissions:
+      contents: read # 소스 코드 체크아웃에 필요
+      actions: write # 아티팩트 업로드에 필요
+
+    steps:
+      # 소스 코드 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.0
+
+      # Java 환경 설정
+      - name: Set Up Java Environment
+        uses: ./.github/actions/setup-java
+
+      # 이벤트 파일 업로드
+      - name: Upload Event File
+        uses: actions/upload-artifact@v4
+        with:
+          name: event-file
+          path: ${{ github.event_path }}
+
+      # 유닛 테스트 실행
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      # 테스트 결과를 아티팩트로 저장
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/test-results/**/*.xml
+
+      # 실패한 테스트 결과를 로그로 출력
+      - name: Output Test Summary
+        if: failure()
+        run: |
+          echo "⚠️ Test failed. Debugging information:"
+          xq < build/test-results/**/*.xml | jq '.testsuite[] | {name: .name, failures: .failure}'
+
+      # 디버깅 정보 추가 출력
+      - name: Debug Test Failure
+        if: failure()
+        run: ./gradlew test --tests '*.*TestFailure*' --info
