@@ -30,6 +30,8 @@ jobs:
         with:
           name: test-results
           path: artifacts/test-results
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
 
       # 이벤트 파일 다운로드
       - name: Download Event File
