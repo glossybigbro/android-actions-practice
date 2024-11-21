@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/test-results/**/*.xml
+          path: "**/test-results/**/*.xml"
 
       # 실패한 테스트 결과를 로그로 출력
       - name: Output Test Summary
