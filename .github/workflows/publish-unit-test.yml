@@ -30,7 +30,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: test-results
-          path: artifacts/test-results
+          run_id: ${{ github.event.workflow_run.id }}
+          if_no_artifact_found: fail
+#          path: artifacts/test-results
 
       # 이벤트 파일 다운로드
       - name: Download Event File
@@ -38,7 +40,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: event-file
-          path: artifacts/event-file
+          run_id: ${{ github.event.workflow_run.id }}
+          if_no_artifact_found: fail
+#          path: artifacts/event-file
 
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
       - name: Publish Unit Test Results
