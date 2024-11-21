@@ -1,4 +1,4 @@
-name: "CD -Create Milestone with Due Date Setting"
+name: "CD - Create Milestone with Due Date Setting"
 
 on:
   workflow_dispatch:
