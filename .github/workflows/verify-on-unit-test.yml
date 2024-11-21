@@ -38,7 +38,7 @@ jobs:
 
       # 유닛 테스트 실행
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest --no-scan --stacktrace
 
       # 테스트 결과를 아티팩트로 저장
       - name: Upload Test Results
@@ -54,17 +54,3 @@ jobs:
         with:
           name: event-file
           path: ${{ github.event_path }}
-
-      # 테스트 결과 요약 출력
-      - name: Output Test Results Summary
-        if: always()
-        run: |
-          echo "Test Results Summary:"
-          xq < build/test-results/**/*.xml | jq -s 'reduce .[] as $item ({"total": 0, "failures": 0}; {"total": .total + ($item.testsuite.tests|tonumber), "failures": .failures + ($item.testsuite.failures|tonumber)})'
-
-      # 실패한 테스트 목록 출력
-      - name: Output Failed Test Details
-        if: failure()
-        run: |
-          echo "Failed Test Details:"
-          xq < build/test-results/**/*.xml | jq '.testsuite[] | select(.failures|tonumber > 0) | .testcase[] | select(.failure) | {name: .name, message: .failure}'
