@@ -1,8 +1,8 @@
-name: "Publish Unit Test Results"
+name: "CI - Publish Unit Test Results"
 
 on:
   workflow_run:
-    workflows: ["Verify Unit Test"]
+    workflows: ["CI - Verify Unit Test"]
     types:
       - completed
 

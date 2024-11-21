@@ -1,4 +1,4 @@
-name: "Verify Unit Test"
+name: "CI - Verify Unit Test"
 
 on:
   pull_request:
