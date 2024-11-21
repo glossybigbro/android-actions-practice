@@ -36,13 +36,6 @@ jobs:
       - name: Set Up Java Environment
         uses: ./.github/actions/setup-java
 
-      # 이벤트 파일 업로드
-      - name: Upload Event File
-        uses: actions/upload-artifact@v4
-        with:
-          name: event-file
-          path: ${{ github.event_path }}
-
       # 유닛 테스트 실행
       - name: Run Unit Tests
         run: ./gradlew testDebugUnitTest --stacktrace
@@ -55,14 +48,23 @@ jobs:
           name: test-results
           path: "**/test-results/**/*.xml"
 
-      # 실패한 테스트 결과를 로그로 출력
-      - name: Output Test Summary
+      # 이벤트 파일 업로드
+      - name: Upload Event File
+        uses: actions/upload-artifact@v4
+        with:
+          name: event-file
+          path: ${{ github.event_path }}
+
+      # 테스트 결과 요약 출력
+      - name: Output Test Results Summary
+        if: always()
+        run: |
+          echo "Test Results Summary:"
+          xq < build/test-results/**/*.xml | jq -s 'reduce .[] as $item ({"total": 0, "failures": 0}; {"total": .total + ($item.testsuite.tests|tonumber), "failures": .failures + ($item.testsuite.failures|tonumber)})'
+
+      # 실패한 테스트 목록 출력
+      - name: Output Failed Test Details
         if: failure()
         run: |
-          echo "⚠️ Test failed. Debugging information:"
-          xq < build/test-results/**/*.xml | jq '.testsuite[] | {name: .name, failures: .failure}'
-
-      # 디버깅 정보 추가 출력
-      - name: Debug Test Failure
-        if: failure()
-        run: ./gradlew test --tests '*.*TestFailure*' --info
+          echo "Failed Test Details:"
+          xq < build/test-results/**/*.xml | jq '.testsuite[] | select(.failures|tonumber > 0) | .testcase[] | select(.failure) | {name: .name, message: .failure}'
