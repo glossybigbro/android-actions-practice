@@ -18,11 +18,12 @@ jobs:
       actions: read # 아티팩트를 다운로드하는 데 필요
 
     steps:
-      # 디버깅: Run ID 확인
+      # 디버깅: Workflow Context 확인
       - name: Debug Workflow Context
         run: |
-          echo "Run ID: ${{ github.event.workflow_run.id }}"
           echo "Repository: ${{ github.repository }}"
+          echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
+          echo "Workflow Run Name: ${{ github.event.workflow_run.name }}"
 
       # 테스트 결과 아티팩트 다운로드
       - name: Download Test Results
@@ -30,8 +31,6 @@ jobs:
         with:
           name: test-results
           path: artifacts/test-results
-          repository: ${{ github.repository }}
-          run-id: ${{ github.event.workflow_run.id }}
 
       # 이벤트 파일 다운로드
       - name: Download Event File

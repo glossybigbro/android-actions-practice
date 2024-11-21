@@ -28,6 +28,13 @@ jobs:
       actions: write # 아티팩트 업로드에 필요
 
     steps:
+      # 디버깅: Workflow Context 확인
+      - name: Debug Workflow Context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
+          echo "Workflow Run Name: ${{ github.event.workflow_run.name }}"
+
       # 소스 코드 체크아웃
       - name: Checkout Code
         uses: actions/checkout@v4.2.0
