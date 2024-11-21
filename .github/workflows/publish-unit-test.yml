@@ -66,9 +66,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const github = require('@actions/github');
             const status = '${{ job.status }}';
-            const context = github.context;
+            const context = github.context;  # github 객체는 이미 제공됨
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
