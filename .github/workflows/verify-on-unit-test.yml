@@ -2,12 +2,8 @@ name: "CI - Verify Unit Test"
 
 on:
   pull_request:
-    branches:
-      - 'main'
+    branches: [ main ]
     types: [opened, synchronize]
-  push:
-    branches:
-      - 'main'
 
 run-name: "Unit Test by ${{ github.actor }} on ${{ github.event_name }} (branch: ${{ github.ref_name }})"
 
