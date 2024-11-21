@@ -47,7 +47,7 @@ jobs:
         with:
           name: test-results
           path: "**/test-results/**/*.xml"
-          if-no-files-found: warn # 파일이 없을 경우 경고만 출력
+          if-no-files-found: warn
 
       # 이벤트 파일 업로드
       - name: Upload Event File

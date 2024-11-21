@@ -2,7 +2,7 @@ name: "CI - Publish Unit Test Results"
 
 on:
   workflow_run:
-    workflows: ["CI - Verify Unit Test"]
+    workflows: ["CI - Verify Unit Test"] # Verify 워크플로 이름과 동일해야 함
     types:
       - completed
 
@@ -11,11 +11,11 @@ permissions: {} # 기본 권한 제거
 jobs:
   publish_results:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion != 'skipped' # Verify Unit Test 워크플로우가 스킵되지 않은 경우만 실행
+    if: github.event.workflow_run.conclusion != 'skipped' # Verify Unit Test가 스킵되지 않았을 경우만 실행
     permissions:
-      checks: write # 커밋 상태 업데이트에 필요
-      pull-requests: write # PR에 코멘트를 작성하기 위해 필요
-      actions: read # 아티팩트를 다운로드하는 데 필요
+      checks: write # 커밋 상태 업데이트
+      pull-requests: write # PR에 코멘트 작성
+      actions: read # 아티팩트 다운로드에 필요
 
     steps:
       # 디버깅: Workflow Context 확인
@@ -25,40 +25,40 @@ jobs:
           echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
           echo "Workflow Run Name: ${{ github.event.workflow_run.name }}"
 
-      # 테스트 결과 아티팩트 다운로드
+      # 테스트 결과 다운로드
       - name: Download Test Results
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
-          name: test-results
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: CI - Verify Unit Test
+          artifact_name: test-results
           run_id: ${{ github.event.workflow_run.id }}
-          if_no_artifact_found: fail
-#          path: artifacts/test-results
 
       # 이벤트 파일 다운로드
       - name: Download Event File
         if: ${{ github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0] }}
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
-          name: event-file
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: CI - Verify Unit Test
+          artifact_name: event-file
           run_id: ${{ github.event.workflow_run.id }}
-          if_no_artifact_found: fail
-#          path: artifacts/event-file
 
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
       - name: Publish Unit Test Results
         if: ${{ github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0] }}
         uses: EnricoMi/publish-unit-test-result-action@v2.17.1
         with:
-          commit: ${{ github.event.workflow_run.head_sha }}  # 해당 커밋의 SHA
-          pull_request: ${{ github.event.workflow_run.pull_requests[0].number }}  # PR 번호
-          files: "artifacts/test-results/**/*.xml"  # 다운로드한 JUnit XML 파일 경로
-          event_file: artifacts/event-file/event.json  # 다운로드한 이벤트 파일 경로
-          event_name: ${{ github.event.workflow_run.event }}  # 이벤트 이름
-          comment_mode: update  # 기존 코멘트 업데이트
-          always_create_status: true  # 항상 체크 상태 생성
-          fail_on: test_failures > 0  # 테스트 실패 시 실패 처리
-          report_individual_runs: false  # 테스트 결과를 요약 형태로만 보고
-          update_check: true  # 항상 체크 상태 업데이트
+          commit: ${{ github.event.workflow_run.head_sha }} # 관련 커밋의 SHA
+          pull_request: ${{ github.event.workflow_run.pull_requests[0].number }} # PR 번호
+          files: "test-results/**/*.xml" # 다운로드한 JUnit XML 파일 경로
+          event_file: event-file/event.json # 다운로드한 이벤트 파일 경로
+          event_name: ${{ github.event.workflow_run.event }} # 이벤트 이름
+          comment_mode: update # 기존 코멘트 업데이트
+          always_create_status: true # 항상 상태 업데이트 생성
+          fail_on: test_failures > 0 # 실패 기준 설정
+          report_individual_runs: false # 테스트 결과 요약만 게시
+          update_check: true # 항상 체크 업데이트
 
       # 커밋 상태 업데이트 (Push와 PR 공통 처리)
       - name: Create Commit Status
