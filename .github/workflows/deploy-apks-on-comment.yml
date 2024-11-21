@@ -1,4 +1,4 @@
-name: "[Build] Deploy APKs Based on Comment Trigger"
+name: "Build - Deploy APKs Based on Comment Trigger"
 
 on:
   issue_comment:

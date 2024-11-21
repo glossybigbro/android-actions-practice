@@ -1,4 +1,4 @@
-name: "[Notification] Notify Milestone Due Date"
+name: "Notification - Notify Milestone Due Date"
 
 # 참고: Slack 알림을 위해 GitHub Secrets에 SLACK_WEBHOOK_URL 및 SLACK_NOTIFY를 설정해야 합니다.
 # 1. Slack에서 "Incoming Webhooks" 앱을 설치한 후, Webhook URL을 생성합니다.

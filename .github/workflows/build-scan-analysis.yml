@@ -1,4 +1,4 @@
-name: "[CI] Generate Build Scan"
+name: "CI - Generate Build Scan"
 
 on:
   workflow_dispatch:

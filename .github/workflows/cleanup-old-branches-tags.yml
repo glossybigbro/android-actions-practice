@@ -1,4 +1,4 @@
-name: "[Maintenance] Cleanup Old Branches and Tags"
+name: "Maintenance - Cleanup Old Branches and Tags"
 
 on:
   schedule:

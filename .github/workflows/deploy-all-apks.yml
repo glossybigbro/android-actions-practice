@@ -1,4 +1,4 @@
-name: "[Build] Deploy All APKs"
+name: "Build - Deploy All APKs"
 
 on:
   workflow_dispatch:
