@@ -76,5 +76,5 @@ jobs:
           check_run: true # 체크 실행을 활성화
           check_run_annotations: all tests # 모든 테스트의 주석 표시
           job_summary: true # 작업 요약을 표시
-          report_individual_runs: "true" # 모든 실패를 개별적으로 표시
+          report_individual_runs: true # 모든 실패를 개별적으로 표시
           ignore_runs: false # 주석 생성 활성화
