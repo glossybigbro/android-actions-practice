@@ -2,7 +2,7 @@ name: "CI - Publish Unit Test Results"
 
 on:
   workflow_run:
-    workflows: ["CI - Verify Unit Test"] # Verify 워크플로 이름과 동일해야 함
+    workflows: ["CI - Verify Unit Test"]
     types:
       - completed
 
@@ -42,7 +42,6 @@ jobs:
 
       # 테스트 결과 유효성 점검
       - name: Validate Test Results
-        id: validate-test-results
         run: |
           XML_FILES=$(find artifacts/test-results -name "*.xml")
           if [ -z "$XML_FILES" ]; then
@@ -50,11 +49,10 @@ jobs:
             exit 1
           fi
           echo "Found test result files: $XML_FILES"
-          echo "::set-output name=xml_files::$XML_FILES"
+          echo "xml_files=$XML_FILES" >> $GITHUB_ENV
 
       # 이벤트 파일 유효성 점검
       - name: Validate Event File
-        id: validate-event-file
         run: |
           EVENT_JSON_PATH=$(find artifacts/event-file -name "event.json")
           if [ -z "$EVENT_JSON_PATH" ]; then
@@ -62,17 +60,15 @@ jobs:
             exit 1
           fi
           echo "Found event.json at $EVENT_JSON_PATH"
-          echo "::set-output name=event_json_path::$EVENT_JSON_PATH"
+          echo "event_json_path=$EVENT_JSON_PATH" >> $GITHUB_ENV
 
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
       - name: Publish Unit Test Results
         if: ${{ github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0] }}
-        uses: EnricoMi/publish-unit-test-result-action@v2.17.1
+        uses: EnricoMi/publish-unit-test-result-action@v2.18.0
         with:
           commit: ${{ github.event.workflow_run.head_sha }} # 관련 커밋의 SHA
           event_name: ${{ github.event.workflow_run.event }} # 이벤트 이름
-          files: ${{ steps.validate-test-results.outputs.xml_files }} # 테스트 결과 경로
-          event_file: ${{ steps.validate-event-file.outputs.event_json_path }} # 이벤트 파일 경로
+          files: ${{ env.xml_files }} # 테스트 결과 경로
+          event_file: ${{ env.event_json_path }} # 이벤트 파일 경로
           comment_mode: update # 기존 코멘트 업데이트
-          fail_on: test_failures > 0 # 실패 기준 설정
-          report_individual_runs: false # 테스트 결과 요약만 게시
