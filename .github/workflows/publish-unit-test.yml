@@ -48,6 +48,7 @@ jobs:
           workflow: CI - Verify Unit Test
           name: event-file
           run_id: ${{ github.event.workflow_run.id }}
+
       # 테스트 결과를 PR에 게시 또는 커밋 상태 업데이트
       - name: Publish Unit Test Results
         if: ${{ github.event.workflow_run.pull_requests && github.event.workflow_run.pull_requests[0] }}
