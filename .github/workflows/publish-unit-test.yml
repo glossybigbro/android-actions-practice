@@ -71,4 +71,4 @@ jobs:
           event_name: ${{ github.event.workflow_run.event }} # 이벤트 이름
           files: ${{ env.xml_files }} # 테스트 결과 경로
           event_file: ${{ env.event_json_path }} # 이벤트 파일 경로
-          comment_mode: update # 기존 코멘트 업데이트
+          comment_mode: changes # 테스트 결과 변경 사항이 있을 때만 코멘트 작성
