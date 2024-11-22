@@ -50,3 +50,4 @@ jobs:
         with:
           name: event-file
           path: ${{ github.event_path }}
+          if-no-files-found: warn
