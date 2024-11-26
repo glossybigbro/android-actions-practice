@@ -47,6 +47,7 @@ The main pages in the Wiki have been updated as follows:
 - **2024-11-13**: Added [Cleanup of Old Branches and Tags](https://github.com/glossybigbro/android-actions-practice/wiki/오래된-브랜치-및-태그-정리) page
 - **2024-11-14**: Added [Why Use BOT Accounts and GITHUB_TOKEN in GitHub Actions](https://github.com/glossybigbro/android-actions-practice/wiki/GitHub-Actions에서-봇(BOT)-계정과-GITHUB_TOKEN을-사용하는-이유) page
 - **2024-11-20**: Added [Automatically Generating Build Scans with Gradle Develocity](https://github.com/glossybigbro/android-actions-practice/wiki/Gradle-Develocity를-활용한-Build-Scan-자동-생성) page
+- **2024-11-26**: Added [Run Unit Tests and Post Results](https://github.com/glossybigbro/android-actions-practice/wiki/유닛-테스트-실행-및-결과-게시) page
 
 ---
 
