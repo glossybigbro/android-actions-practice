@@ -48,7 +48,7 @@ Wiki의 주요 페이지 업데이트 내역은 다음과 같습니다:
 - **2024-11-14**: [GitHub Actions에서 봇 계정과 GITHUB_TOKEN을 사용하는 이유](https://github.com/glossybigbro/android-actions-practice/wiki/GitHub-Actions에서-봇(BOT)-계정과-GITHUB_TOKEN을-사용하는-이유) 페이지 추가
 - **2024-11-20**: [Gradle Develocity를 활용한 Build Scan 자동 생성](https://github.com/glossybigbro/android-actions-practice/wiki/Gradle-Develocity를-활용한-Build-Scan-자동-생성) 페이지 추가
 - **2024-11-26**: [유닛 테스트 실행 및 결과 게시](https://github.com/glossybigbro/android-actions-practice/wiki/유닛-테스트-실행-및-결과-게시) 페이지 추가
-- **2024-11-27**: [GitHub Actions에서 동시성 제어가 필요한 이유](GitHub-Actions에서-동시성-제어가-필요한-이유) 페이지 추가
+- **2024-11-27**: [GitHub Actions에서 동시성 제어가 필요한 이유](https://github.com/glossybigbro/android-actions-practice/wiki/GitHub-Actions에서-동시성-제어가-필요한-이유) 페이지 추가
 
 ---
 
