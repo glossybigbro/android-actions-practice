@@ -10,7 +10,7 @@ runs:
   using: "composite"
   steps:
     - name: Gradle Wrapper Validation
-      uses: gradle/wrapper-validation-action@v3.5.0
+      uses: gradle/actions/wrapper-validation@v3.5.0
 
     # CI용 Gradle 속성 설정
     - name: Copy CI gradle.properties
@@ -28,6 +28,7 @@ runs:
 
     # Better than caching and/or extensions of actions/setup-java
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v3.5.0
+      uses: gradle/actions/setup-gradle@v3.5.0
       with:
         gradle-version: wrapper
+        cache-enabled: true
