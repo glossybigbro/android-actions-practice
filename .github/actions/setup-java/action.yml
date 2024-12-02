@@ -31,4 +31,3 @@ runs:
       uses: gradle/actions/setup-gradle@v3.5.0
       with:
         gradle-version: wrapper
-        cache-enabled: true
