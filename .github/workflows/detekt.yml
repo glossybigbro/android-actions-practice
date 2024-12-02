@@ -19,7 +19,7 @@ jobs:
       actions: write # 아티팩트 업로드에 필요
 
     steps:
-      - # 소스 코드 체크아웃
+      # 소스 코드 체크아웃
       - name: Checkout Code
         uses: actions/checkout@v4.2.0
 
