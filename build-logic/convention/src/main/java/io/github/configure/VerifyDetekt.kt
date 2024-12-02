@@ -19,12 +19,12 @@ internal fun Project.configureVerifyDetekt() {
     }
 
     // Detekt를 check 및 build 작업에서 제외
-    tasks.named("check") {
-        dependsOn.removeAll { it.name == "detekt" }
+    tasks.named("check").configure {
+        dependsOn.removeAll { it.toString() == "detekt" }
     }
 
-    tasks.named("build") {
-        dependsOn.removeAll { it.name == "detekt" }
+    tasks.named("build").configure {
+        dependsOn.removeAll { it.toString() == "detekt" }
     }
 }
 
