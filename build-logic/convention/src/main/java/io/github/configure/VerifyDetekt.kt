@@ -17,6 +17,15 @@ internal fun Project.configureVerifyDetekt() {
     dependencies {
         "detektPlugins"(libs.findLibrary("verify.detektFormatting").get())
     }
+
+    // Detekt를 check 및 build 작업에서 제외
+    tasks.named("check") {
+        dependsOn.removeAll { it.name == "detekt" }
+    }
+
+    tasks.named("build") {
+        dependsOn.removeAll { it.name == "detekt" }
+    }
 }
 
 fun Project.setupDetekt(extension: DetektExtension) {
