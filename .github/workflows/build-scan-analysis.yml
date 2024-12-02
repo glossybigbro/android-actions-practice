@@ -1,13 +1,12 @@
 name: "CI - Generate Build Scan"
 
 on:
-  workflow_dispatch:
-
-#  pull_request:
-#    branches: [ main ]
-#    types: [opened, synchronize]
+  workflow_dispatch: # 수동 실행 트리거
   push:
-    branches: [ main ]
+    branches: [ main ] # main 브랜치 푸시 시 실행
+
+env:
+  EXCLUDED_TASKS: detekt # 전역 환경 변수로 제외할 작업 설정 예) detekt,lint
 
 permissions: {}  # 기본 권한 제거
 
@@ -29,13 +28,27 @@ jobs:
       # Gradle Build Scan 실행 및 Summary 작성
       - name: Generate Build Scan and Write to Summary
         run: |
-          OUTPUT=$(./gradlew build --scan)
+          # EXCLUDED_TASKS 환경 변수에서 제외할 작업 목록 생성
+          EXCLUDED_OPTION=""
+          if [ -n "$EXCLUDED_TASKS" ]; then
+            for TASK in $(echo "$EXCLUDED_TASKS" | tr ',' ' '); do
+              EXCLUDED_OPTION="$EXCLUDED_OPTION -x $TASK"
+            done
+          fi
+
+          # Gradle 명령 실행
+          echo "Running Gradle Build with excluded tasks: $EXCLUDED_OPTION"
+          OUTPUT=$(./gradlew build --scan $EXCLUDED_OPTION)
+
+          # Build Scan URL 추출
           SCAN_URL=$(echo "$OUTPUT" | grep -o "https://gradle.com/s/.*")
           if [ -z "$SCAN_URL" ]; then
             echo "Error: Build Scan URL not found!"
             echo "$OUTPUT" # Gradle 전체 로그 출력
             exit 1
           fi
+
+          # Build Scan 결과를 GitHub Summary에 추가
           echo "Build Scan URL: $SCAN_URL"
           echo "### Build Scan Result" >> $GITHUB_STEP_SUMMARY
           echo "- [Build Scan URL]($SCAN_URL)" >> $GITHUB_STEP_SUMMARY
