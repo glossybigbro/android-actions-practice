@@ -1,0 +1,48 @@
+name: "CI - Detekt"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {} # 기본 권한 제거
+
+jobs:
+  detekt:
+    runs-on: ubuntu-latest
+    # 필요한 권한 명시적으로 설정
+    permissions:
+      contents: read # 소스 코드 체크아웃에 필요
+      actions: write # 아티팩트 업로드에 필요
+
+    steps:
+      - # 소스 코드 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.0
+
+      # Java 환경 설정
+      - name: Set Up Java Environment
+        uses: ./.github/actions/setup-java
+
+      # Detekt 실행
+      - name: Run Detekt
+        run: ./gradlew detekt --stacktrace
+
+      # PR 이벤트 저장
+      - name: Save PR Event
+        if: failure()
+        run: |
+          mkdir -p ./pr
+          echo '${{ toJson(github.event) }}' > ./pr/event.json
+
+      # PR 이벤트 아티팩트 업로드
+      - name: Upload PR Event Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr
+          path: pr/
+          if-no-files-found: warn

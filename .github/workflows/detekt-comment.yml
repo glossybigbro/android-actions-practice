@@ -1,0 +1,79 @@
+name: "CI - Detekt Comment"
+
+on:
+  workflow_run:
+    workflows: ["CI - Detekt"]
+    types:
+      - completed
+
+permissions: {}  # 기본 권한 제거
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'failure'
+    permissions:
+      actions: read # 아티팩트를 다운로드하는 데 필요
+      pull-requests: write # PR에 코멘트를 작성하기 위해 필요
+
+    steps:
+      # PR 이벤트 아티팩트 다운로드
+      - name: Download PR Event Artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: CI - Detekt
+          name: pr
+          run_id: ${{ github.event.workflow_run.id }}
+          path: artifacts/pr
+          if_no_artifact_found: fail
+
+      # PR 이벤트 아티팩트 유효성 점검
+      - name: Validate PR Event Artifact
+        run: |
+          # event.json 파일 검증
+          EVENT_JSON_PATH=$(find artifacts/pr -name "event.json")
+          if [ -z "$EVENT_JSON_PATH" ]; then
+            echo "Error: event.json not found in artifacts/pr"
+            exit 1
+          fi
+          # JSON 구조 및 필수 필드 검증
+          jq -e '.pull_request.number and .pull_request.title' "$EVENT_JSON_PATH" > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            echo "Error: event.json is missing required fields (pull_request.number or pull_request.title)"
+            exit 1
+          fi
+          echo "Valid event.json found at $EVENT_JSON_PATH"
+          echo "event_json_path=$EVENT_JSON_PATH" >> $GITHUB_ENV
+
+      # PR 번호 추출
+      - name: Extract PR Number
+        id: pr
+        run: |
+          PR_NUMBER=$(jq -r '.pull_request.number' ${{ env.event_json_path }})
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Error: PR number could not be extracted from event.json"
+            exit 1
+          fi
+          echo "PR number: $PR_NUMBER"
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      # PR에 코멘트 작성
+      - name: Post Comment on PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `
+                ❌ **Detekt Scan Failed**
+                Please run the following command to automatically fix the issues:
+                \`\`\`
+                ./gradlew detekt --auto-correct
+                \`\`\`
+                For more details, please check the artifact logs attached to this workflow.
+              `
+            });
