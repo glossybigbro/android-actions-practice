@@ -49,6 +49,7 @@ The main pages in the Wiki have been updated as follows:
 - **2024-11-20**: Added [Automatically Generating Build Scans with Gradle Develocity](https://github.com/glossybigbro/android-actions-practice/wiki/Gradle-Develocity를-활용한-Build-Scan-자동-생성) page
 - **2024-11-26**: Added [Run Unit Tests and Post Results](https://github.com/glossybigbro/android-actions-practice/wiki/유닛-테스트-실행-및-결과-게시) page
 - **2024-11-27**: Added [Why Concurrency Control is Needed in GitHub Actions](https://github.com/glossybigbro/android-actions-practice/wiki/GitHub-Actions에서-동시성-제어가-필요한-이유) page
+- **2024-12-03**: Added [Detekt Inspection and Failure Result PR Comment Posting](https://github.com/glossybigbro/android-actions-practice/wiki/Detekt-검사-및-실패-결과-PR-코멘트-게시) page
 
 ---
 
