@@ -7,7 +7,10 @@ import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 
 internal fun Project.configureVerifyDetekt() {
     pluginManager.apply("io.gitlab.arturbosch.detekt")
@@ -33,9 +36,15 @@ fun Project.setupDetekt(extension: DetektExtension) {
         baseline = file("${project.rootDir}/config/detekt/baseline.xml")
     }
 
-    // Detekt 리포트 병합 태스크 등록
-    val reportMerge = rootProject.tasks.findByName("reportMerge") ?: rootProject.tasks.register("reportMerge", ReportMergeTask::class.java) {
-        output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.xml"))
+    // Detekt 리포트 병합 태스크 등록 또는 검색
+    val reportMerge = if (!rootProject.tasks.names.contains("reportMerge")) {
+        rootProject.tasks.register("reportMerge", ReportMergeTask::class) {
+            output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.xml"))
+        }
+    } else {
+        // 이미 등록된 reportMerge 태스크를 가져옴
+        @Suppress("UNCHECKED_CAST")
+        rootProject.tasks.named("reportMerge") as TaskProvider<ReportMergeTask>
     }
 
     plugins.withType<DetektPlugin> {
@@ -50,8 +59,7 @@ fun Project.setupDetekt(extension: DetektExtension) {
             }
 
             // 병합 태스크 입력으로 XML 리포트 전달
-            @Suppress("UNCHECKED_CAST")
-            (reportMerge as TaskProvider<ReportMergeTask>).configure {
+            reportMerge.configure {
                 input.from(xmlReportFile)
             }
         }
