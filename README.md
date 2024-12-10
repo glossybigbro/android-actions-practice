@@ -1,13 +1,3 @@
-<p align="center">
-🌐 Select Language: 
-  <a href="/README.md">🇰🇷 한국어</a> |
-  <a href="/README_EN.md">🇺🇸 English</a> 
-  <!-- <a href="/README_DE.md">🇩🇪 Deutsch</a> | 
-  <a href="/README_ES.md">🇪🇸 Español</a> | 
-  <a href="/README_FR.md">🇫🇷 Français</a> | 
-  <a href="/README_JP.md">🇯🇵 日本語</a> | 
-  <a href="/README_CN.md">🇨🇳 中文</a> -->
-</p>
 
 # Android Actions Practice
 
